@@ -1,11 +1,22 @@
 "use client";
 
+import { useParams, useSearchParams } from "next/navigation";
 import GameCanvas from "../../components/GameCanvas";
 import Sidebar from "../../components/Sidebar";
+import ErrorModal from "../../components/ErrorModal";
+import { useGameStore } from "../../../hooks/useGameStore";
 
 export default function GameScreen() {
+  const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const name = searchParams.get("name") || "";
+
+  const { error, clearError } = useGameStore(id, name );
+
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#0D0F1A] text-gray-100">
+    <>
+      <ErrorModal error={error} onClose={clearError} />
+      <div className="h-screen w-screen flex flex-col bg-[#0D0F1A] text-gray-100">
       {/* HEADER */}
       <header className="h-14 px-6 flex items-center justify-between border-b border-white/10 bg-black/30 backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -51,7 +62,7 @@ export default function GameScreen() {
         <div className="flex-1 p-4">
           <div className="w-full h-full rounded-2xl border border-white/10 bg-[#050712] overflow-hidden relative">
             {/* You can add a faint grid as a background with CSS or draw in canvas */}
-            <GameCanvas />
+            <GameCanvas roomId={id as string} />
           </div>
         </div>
 
@@ -70,5 +81,6 @@ export default function GameScreen() {
         </span>
       </footer>
     </div>
+    </>
   );
 }

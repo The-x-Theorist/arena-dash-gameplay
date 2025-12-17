@@ -3,12 +3,21 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const generateRoomId = (): string => {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let roomId = "";
+  for (let i = 0; i < 5; i++) {
+    roomId += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return roomId;
+};
+
 export default function Home() {
   const [name, setName] = useState("");
   const router = useRouter();
 
   const startGame = () => {
-    const roomId = "quickplay";
+    const roomId = generateRoomId();
     router.push(`/room/${roomId}?name=${name || "Guest"}`);
   };
 
