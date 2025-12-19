@@ -9,6 +9,7 @@ interface Player {
 
 export interface GameStoreData {
   players: Player[];
+  setPlayers: (players: Player[]) => void;
   addPlayers: (players: Player[]) => void;
   removePlayer: (playerId: string) => void;
   updatePlayer: (playerId: string, player: Player) => void;
@@ -16,6 +17,7 @@ export interface GameStoreData {
 
 const useGameStoreData = create<GameStoreData>((set) => ({
   players: [] as Player[],
+  setPlayers: (players: Player[]) => set({ players }),
   addPlayers: (players: Player[]) => set((state: GameStoreData) => ({ players: [...state.players, ...players] })),
   removePlayer: (playerId: string) => set((state: { players: Player[] }) => ({ players: state.players.filter((p) => p.id !== playerId) })),
   updatePlayer: (playerId: string, player: Player) => set((state: { players: Player[] }) => ({ players: state.players.map((p) => p.id === playerId ? player : p) })),

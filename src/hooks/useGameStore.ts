@@ -17,7 +17,7 @@ const getWebSocketUrl = (): string | null => {
 };
 
 export const useGameStore = (roomId: string, name: string) => {
-    const addPlayers = useGameStoreData( (state: GameStoreData) => state.addPlayers);
+    const setPlayers = useGameStoreData( (state: GameStoreData) => state.setPlayers);
     const [error, setError] = useState<string | null>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -99,15 +99,11 @@ export const useGameStore = (roomId: string, name: string) => {
                     setError(null); // Clear any previous errors on successful connection
                 };
 
-                setTimeout(() => {
-                    sendMessage({"type":"input","seq":1,"pressed":["RIGHT"]});
-                }, 4000);
-
                 ws.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
                         if(data.type === "tick") {
-                            addPlayers(data.players);
+                            setPlayers(data.players);
                         }
                     } catch (error) {
                         console.error("Error parsing WebSocket message:", error);
@@ -167,6 +163,20 @@ export const useGameStore = (roomId: string, name: string) => {
 
         connectWebSocket();
 
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowRight") {
+                sendMessage({"type":"input","seq":1,"pressed":["RIGHT"]});
+            }
+            if (event.key === "ArrowDown") {
+                sendMessage({"type":"input","seq":1,"pressed":["DOWN"]});
+            }
+            if (event.key === "ArrowLeft") {
+                sendMessage({"type":"input","seq":1,"pressed":["LEFT"]});
+            }
+            if (event.key === "ArrowUp") {
+                sendMessage({"type":"input","seq":1,"pressed":["UP"]});
+            }
+        });
         // Cleanup function
         return () => {
             // Mark as unmounting to prevent new connections and reconnections
@@ -199,8 +209,9 @@ export const useGameStore = (roomId: string, name: string) => {
                 }
                 wsRef.current = null;
             }
+            document.removeEventListener("keydown", () => { return; });
         };
-    }, [roomId]);
+    }, [roomId, name, setPlayers]);
 
     const clearError = () => {
         setError(null);

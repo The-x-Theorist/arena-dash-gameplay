@@ -1,4 +1,5 @@
-export default function Sidebar() {
+export default function Sidebar(props: { roomId: string }) {
+    const { roomId } = props;
     return (
       <div className="flex flex-col h-full gap-4">
         {/* Room Info & Share */}
@@ -7,8 +8,8 @@ export default function Sidebar() {
             Room
           </h2>
           <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-            <span className="font-mono text-sm">Z3K9D</span>
-            <button className="text-xs px-2 py-1 rounded-full border border-sky-400/40 text-sky-300 hover:bg-sky-500/10">
+            <span className="font-mono text-sm">{roomId}</span>
+            <button onClick={() => navigator.clipboard.writeText(window.location.origin + "/?roomId=" + roomId)} className="text-xs px-2 py-1 rounded-full border border-sky-400/40 text-sky-300 hover:bg-sky-500/10">
               Copy Link
             </button>
           </div>
