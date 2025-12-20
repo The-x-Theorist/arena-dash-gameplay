@@ -1,8 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
-import { useGameStore } from "../../../hooks/useGameStore";
-import useGameStoreData, { GameStoreData } from "@/app/store/gameStoreData";
+import { useEffect, useRef } from "react";
 
 // CONFIG
 const GRID_SIZE = 40;
@@ -468,17 +466,30 @@ const drawDragon = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
   drawDragonOutline(ctx, x, y);
 };
 
-export default function GameCanvas() {
+
+interface Player {
+  id: string;
+  x: number;
+  y: number;
+}
+export default function GameCanvas(props: { players: Player[], orb: { x: number, y: number } }) {
+  const { players, orb } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const players = useGameStoreData( (state: GameStoreData) => state.players);
+  const animationFrameRef = useRef<number | null>(null);  
+  // Store players in a ref so the render loop always reads the latest
+  const playersRef = useRef(players);
+  const orbRef = useRef(orb);
+  
+  // Update the refs whenever players/orb changes
+  useEffect(() => {
+    playersRef.current = players;
+  }, [players]);
 
-  const drawPlayers = useCallback(() => {
-    const ctx = canvasRef.current!.getContext("2d")!;
-    players.forEach((p) => {
-      drawDragon(ctx, p.x, p.y);
-    });
-  }, [players, canvasRef])
+  useEffect(() => {
+    orbRef.current = orb;
+  }, [orb]);
 
+  // Set up canvas and render loop only once
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
@@ -521,10 +532,58 @@ export default function GameCanvas() {
       ctx.restore();
     };
 
+    const drawPlayers = () => {
+      // Read from ref to always get the latest players
+      const currentPlayers = playersRef.current;
+      
+      // Clean up colors for players who left
+      const currentPlayerIds = new Set(currentPlayers.map(p => p.id));
+      cleanupPlayerColors(currentPlayerIds);
+      
+      // Draw each player
+      currentPlayers.forEach((p) => {
+        drawDragon(ctx, p.x, p.y, p.id);
+      });
+    };
+
+    const drawOrb = () => {
+      const currentOrb = orbRef.current;
+      const orbRadius = 15;
+      
+      // Outer glow
+      const gradient = ctx.createRadialGradient(
+        currentOrb.x, currentOrb.y, 0,
+        currentOrb.x, currentOrb.y, orbRadius * 2
+      );
+      gradient.addColorStop(0, "rgba(255, 215, 0, 0.8)");
+      gradient.addColorStop(0.5, "rgba(255, 165, 0, 0.4)");
+      gradient.addColorStop(1, "rgba(255, 100, 0, 0)");
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(currentOrb.x, currentOrb.y, orbRadius * 2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Main orb body
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.arc(currentOrb.x, currentOrb.y, orbRadius, 0, Math.PI * 2);
+      ctx.fill();
+      
+      // Inner highlight
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.beginPath();
+      ctx.arc(currentOrb.x - orbRadius * 0.3, currentOrb.y - orbRadius * 0.3, orbRadius * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
+    let isRunning = true;
+
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       drawGrid();
+      drawOrb();
       drawPlayers();
       drawWatermark();
 

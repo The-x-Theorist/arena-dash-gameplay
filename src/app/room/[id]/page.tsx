@@ -12,6 +12,14 @@ export default function GameScreen() {
   const name = searchParams.get("name") || "";
 
   const { error, clearError } = useGameStore(id, name );
+  const players = useGameStoreData( (state: GameStoreData) => state.players);
+  const orb = useGameStoreData( (state: GameStoreData) => state.orb);
+  const orbsCollected = useGameStoreData( (state: GameStoreData) => state.orbsCollected);
+
+  const orbsCollectedWithNames = orbsCollected.map((o) => ({
+    playerName: o.playerName,
+    orbCollected: o.orbCollected,
+  }));
 
   return (
     <>
@@ -62,13 +70,13 @@ export default function GameScreen() {
         <div className="flex-1 p-4">
           <div className="w-full h-full rounded-2xl border border-white/10 bg-[#050712] overflow-hidden relative">
             {/* You can add a faint grid as a background with CSS or draw in canvas */}
-            <GameCanvas roomId={id as string} />
+            <GameCanvas players={players} orb={orb} />
           </div>
         </div>
 
         {/* Sidebar */}
         <aside className="w-80 border-l border-white/10 bg-black/30 backdrop-blur-md p-4 flex flex-col">
-          <Sidebar />
+          <Sidebar roomId={id} orbsCollected={orbsCollectedWithNames} />
         </aside>
       </div>
 

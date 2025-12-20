@@ -17,8 +17,11 @@ export default function Home() {
   const router = useRouter();
 
   const startGame = () => {
-    const roomId = generateRoomId();
-    router.push(`/room/${roomId}?name=${name || "Guest"}`);
+    let roomIdToUse = roomId;
+    if (!roomIdToUse) {
+      roomIdToUse = generateRoomId();
+    }
+    router.push(`/room/${roomIdToUse}?name=${name}`);
   };
 
   return (
@@ -31,12 +34,15 @@ export default function Home() {
         onChange={(e) => setName(e.target.value)}
       />
 
-      <button
-        onClick={startGame}
-        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-lg"
-      >
-        Play
-      </button>
+      <form action={startGame}>
+        <button
+          type="submit"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!name}
+        >
+          Play
+        </button>
+      </form>
     </main>
   );
 }
