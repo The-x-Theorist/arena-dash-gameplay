@@ -17,7 +17,10 @@ const getWebSocketUrl = (): string | null => {
 };
 
 export const useGameStore = (roomId: string, name: string) => {
-    const addPlayers = useGameStoreData( (state: GameStoreData) => state.addPlayers);
+    const setPlayers = useGameStoreData( (state: GameStoreData) => state.setPlayers);
+    const setOrb = useGameStoreData( (state: GameStoreData) => state.setOrb);
+    const setOrbsCollected = useGameStoreData( (state: GameStoreData) => state.setOrbsCollected);
+    const players = useGameStoreData( (state: GameStoreData) => state.players);
     const [error, setError] = useState<string | null>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,6 +34,7 @@ export const useGameStore = (roomId: string, name: string) => {
             console.warn("WebSocket is not connected");
         }
     };
+    const orbsCollected = players.map(player => player.orbsCollected).reduce((a, b) => a + b, 0);
 
     useEffect(() => {
         if (!roomId) return;
@@ -107,7 +111,8 @@ export const useGameStore = (roomId: string, name: string) => {
                     try {
                         const data = JSON.parse(event.data);
                         if(data.type === "tick") {
-                            addPlayers(data.players);
+                            setPlayers(data.players);
+                            setOrb(data.orb);
                         }
                     } catch (error) {
                         console.error("Error parsing WebSocket message:", error);
@@ -200,7 +205,26 @@ export const useGameStore = (roomId: string, name: string) => {
                 wsRef.current = null;
             }
         };
-    }, [roomId]);
+    }, [roomId, name, setPlayers, setOrb]);
+
+    const prevOrbsCollectedRef = useRef<number>(-1);
+    const prevPlayersLengthRef = useRef<number>(0);
+
+    useEffect(() => {
+        const playersLengthChanged = prevPlayersLengthRef.current !== players.length;
+        if (playersLengthChanged) {
+            prevPlayersLengthRef.current = players.length;
+        }
+
+        const orbsCollectedChanged = prevOrbsCollectedRef.current !== orbsCollected;
+        if (orbsCollectedChanged) {
+            prevOrbsCollectedRef.current = orbsCollected;
+        }
+    
+        if (playersLengthChanged || orbsCollectedChanged) {
+            setOrbsCollected(players.map(player => ({ playerId: player.id, playerName: player.name, orbCollected: player.orbsCollected })));
+        }
+    }, [orbsCollected, players, setOrbsCollected]);
 
     const clearError = () => {
         setError(null);

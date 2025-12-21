@@ -1,4 +1,5 @@
-export default function Sidebar() {
+export default function Sidebar(props: { roomId: string, orbsCollected: { playerName: string, orbCollected: number }[] }) {
+    const { roomId, orbsCollected } = props;
     return (
       <div className="flex flex-col h-full gap-4">
         {/* Room Info & Share */}
@@ -20,7 +21,12 @@ export default function Sidebar() {
             Players
           </h2>
           <div className="rounded-xl border border-white/10 bg-white/5 p-2 max-h-44 overflow-y-auto">
-            {/* map players here */}
+            {orbsCollected.map((orbCollected) => (
+              <div key={orbCollected.playerName} className="flex items-center justify-between">
+                <span className="font-mono text-sm">{orbCollected.playerName}</span>
+                <span className="font-mono text-sm">{orbCollected.orbCollected}</span>
+              </div>
+            ))}
           </div>
         </section>
   
