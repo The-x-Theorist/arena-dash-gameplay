@@ -1,33 +1,117 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 // CONFIG
 const GRID_SIZE = 40;
 const PLAYER_RADIUS = 20;
 
-// Dragon color constants (matching the green cartoon style)
-const DRAGON_COLORS = {
-  bodyGreen: "#427F38",
-  darkGreen: "#2A4E26",
-  wingGreen: "#386C32",
-  underbelly: "#DCC79D",
-  outline: "#213F1D",
+// Dragon color palettes for different players
+interface DragonColors {
+  body: string;
+  dark: string;
+  wing: string;
+  underbelly: string;
+  outline: string;
+}
+
+const DRAGON_PALETTES: DragonColors[] = [
+  // Green (original)
+  {
+    body: "#427F38",
+    dark: "#2A4E26",
+    wing: "#386C32",
+    underbelly: "#DCC79D",
+    outline: "#213F1D",
+  },
+  // Blue/Ice
+  {
+    body: "#3B7EA1",
+    dark: "#2A5A73",
+    wing: "#4A8FB5",
+    underbelly: "#B8D4E3",
+    outline: "#1E4A5F",
+  },
+  // Red/Fire
+  {
+    body: "#A13B3B",
+    dark: "#732A2A",
+    wing: "#B54A4A",
+    underbelly: "#E3B8B8",
+    outline: "#5F1E1E",
+  },
+  // Purple/Mystic
+  {
+    body: "#7B3BA1",
+    dark: "#532A73",
+    wing: "#8E4AB5",
+    underbelly: "#D4B8E3",
+    outline: "#4A1E5F",
+  },
+  // Gold/Royal
+  {
+    body: "#A18A3B",
+    dark: "#736226",
+    wing: "#B59C4A",
+    underbelly: "#E3DCC7",
+    outline: "#5F4F1E",
+  },
+  // Cyan/Ocean
+  {
+    body: "#3BA1A1",
+    dark: "#267373",
+    wing: "#4AB5B5",
+    underbelly: "#B8E3E3",
+    outline: "#1E5F5F",
+  },
+  // Orange/Ember
+  {
+    body: "#A15F3B",
+    dark: "#73422A",
+    wing: "#B5704A",
+    underbelly: "#E3CDB8",
+    outline: "#5F361E",
+  },
+  // Pink/Blossom
+  {
+    body: "#A13B7B",
+    dark: "#732A53",
+    wing: "#B54A8E",
+    underbelly: "#E3B8D4",
+    outline: "#5F1E4A",
+  },
+];
+
+// Hash a player ID to get a consistent color index
+const hashPlayerId = (id: string): number => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    const char = id.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+};
+
+const getDragonColors = (playerId: string): DragonColors => {
+  const colorIndex = hashPlayerId(playerId) % DRAGON_PALETTES.length;
+  return DRAGON_PALETTES[colorIndex];
 };
 
 // Dragon drawing functions
-const drawDragonBody = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+const drawDragonBody = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
   const bodyWidth = PLAYER_RADIUS * 1.4;
   const bodyHeight = PLAYER_RADIUS * 1.1;
 
   // Main body (rounded oval)
-  ctx.fillStyle = DRAGON_COLORS.bodyGreen;
+  ctx.fillStyle = colors.body;
   ctx.beginPath();
   ctx.ellipse(x, y, bodyWidth, bodyHeight, 0, 0, Math.PI * 2);
   ctx.fill();
 
   // Underbelly with horizontal stripes
-  ctx.fillStyle = DRAGON_COLORS.underbelly;
+  ctx.fillStyle = colors.underbelly;
   const bellyY = y + PLAYER_RADIUS * 0.3;
   const bellyWidth = bodyWidth * 0.9;
   const bellyHeight = bodyHeight * 0.5;
@@ -37,7 +121,7 @@ const drawDragonBody = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   ctx.fill();
 
   // Underbelly stripes
-  ctx.strokeStyle = DRAGON_COLORS.darkGreen;
+  ctx.strokeStyle = colors.dark;
   ctx.lineWidth = 1.5;
   for (let i = 0; i < 4; i++) {
     const stripeY = bellyY - bellyHeight * 0.3 + (i * bellyHeight * 0.2);
@@ -48,14 +132,14 @@ const drawDragonBody = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   }
 };
 
-const drawDragonHead = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+const drawDragonHead = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
   const headX = x - PLAYER_RADIUS * 0.9;
   const headY = y - PLAYER_RADIUS * 0.1;
   const headWidth = PLAYER_RADIUS * 1.0;
   const headHeight = PLAYER_RADIUS * 0.85;
 
   // Main head (rounded)
-  ctx.fillStyle = DRAGON_COLORS.bodyGreen;
+  ctx.fillStyle = colors.body;
   ctx.beginPath();
   ctx.ellipse(headX, headY, headWidth, headHeight, -0.1, 0, Math.PI * 2);
   ctx.fill();
@@ -71,13 +155,13 @@ const drawDragonHead = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   ctx.fill();
 
   // Mouth opening
-  ctx.fillStyle = DRAGON_COLORS.underbelly;
+  ctx.fillStyle = colors.underbelly;
   ctx.beginPath();
   ctx.ellipse(snoutX - snoutWidth * 0.2, snoutY + snoutHeight * 0.2, snoutWidth * 0.3, snoutHeight * 0.25, -0.1, 0, Math.PI * 2);
   ctx.fill();
 
   // Chin spike
-  ctx.fillStyle = DRAGON_COLORS.bodyGreen;
+  ctx.fillStyle = colors.body;
   ctx.beginPath();
   ctx.moveTo(snoutX, snoutY + snoutHeight * 0.4);
   ctx.lineTo(snoutX - snoutWidth * 0.2, snoutY + snoutHeight * 0.7);
@@ -86,13 +170,13 @@ const drawDragonHead = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   ctx.fill();
 };
 
-const drawDragonHorns = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+const drawDragonHorns = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
   const headX = x - PLAYER_RADIUS * 0.9;
   const headY = y - PLAYER_RADIUS * 0.1;
   const headWidth = PLAYER_RADIUS * 1.0;
 
-  ctx.fillStyle = DRAGON_COLORS.underbelly;
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+  ctx.fillStyle = colors.underbelly;
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2;
 
   // Left horn (curved upward and backward)
@@ -114,12 +198,12 @@ const drawDragonHorns = (ctx: CanvasRenderingContext2D, x: number, y: number) =>
   ctx.stroke();
 };
 
-const drawDragonWings = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+const drawDragonWings = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
   const wingBaseX = x - PLAYER_RADIUS * 0.2;
   const wingBaseY = y - PLAYER_RADIUS * 0.3;
 
-  ctx.fillStyle = DRAGON_COLORS.wingGreen;
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+  ctx.fillStyle = colors.wing;
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2.5;
 
   // Left wing (bat-like with curved upper edge and lobed lower edge)
@@ -134,8 +218,8 @@ const drawDragonWings = (ctx: CanvasRenderingContext2D, x: number, y: number) =>
   ctx.fill();
   ctx.stroke();
 
-  // Wing vein lines (same green as body)
-  ctx.strokeStyle = DRAGON_COLORS.bodyGreen;
+  // Wing vein lines (same as body)
+  ctx.strokeStyle = colors.body;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(wingBaseX, wingBaseY);
@@ -147,8 +231,8 @@ const drawDragonWings = (ctx: CanvasRenderingContext2D, x: number, y: number) =>
   ctx.stroke();
 
   // Right wing
-  ctx.fillStyle = DRAGON_COLORS.wingGreen;
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+  ctx.fillStyle = colors.wing;
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
   ctx.moveTo(wingBaseX, wingBaseY);
@@ -162,7 +246,7 @@ const drawDragonWings = (ctx: CanvasRenderingContext2D, x: number, y: number) =>
   ctx.stroke();
 
   // Wing vein lines
-  ctx.strokeStyle = DRAGON_COLORS.bodyGreen;
+  ctx.strokeStyle = colors.body;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(wingBaseX, wingBaseY);
@@ -174,14 +258,14 @@ const drawDragonWings = (ctx: CanvasRenderingContext2D, x: number, y: number) =>
   ctx.stroke();
 };
 
-const drawDragonLegs = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
-  const legColor = DRAGON_COLORS.bodyGreen;
-  const clawColor = DRAGON_COLORS.underbelly;
+const drawDragonLegs = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
+  const legColor = colors.body;
+  const clawColor = colors.underbelly;
   const legWidth = PLAYER_RADIUS * 0.25;
   const legHeight = PLAYER_RADIUS * 0.6;
 
   ctx.fillStyle = legColor;
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2;
 
   // Front left leg
@@ -304,7 +388,7 @@ const drawDragonLegs = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   ctx.fill();
 };
 
-const drawDragonTail = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+const drawDragonTail = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
   const tailStartX = x + PLAYER_RADIUS * 1.0;
   const tailStartY = y + PLAYER_RADIUS * 0.2;
   const tailMidX = x + PLAYER_RADIUS * 2.0;
@@ -313,8 +397,8 @@ const drawDragonTail = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   const tailEndY = y - PLAYER_RADIUS * 0.5;
   const tailWidth = PLAYER_RADIUS * 0.5;
 
-  ctx.fillStyle = DRAGON_COLORS.bodyGreen;
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+  ctx.fillStyle = colors.body;
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2.5;
 
   // Curved tail (thick, tapering)
@@ -337,9 +421,9 @@ const drawDragonTail = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   ctx.stroke();
 };
 
-const drawDragonSpines = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
-  ctx.fillStyle = DRAGON_COLORS.bodyGreen;
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+const drawDragonSpines = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
+  ctx.fillStyle = colors.body;
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2;
 
   // Spines along back and tail (triangular spikes)
@@ -424,8 +508,8 @@ const drawDragonFire = (ctx: CanvasRenderingContext2D, x: number, y: number) => 
   ctx.fill();
 };
 
-const drawDragonOutline = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
-  ctx.strokeStyle = DRAGON_COLORS.outline;
+const drawDragonOutline = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
+  ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2.5;
 
   // Body outline
@@ -453,17 +537,17 @@ const drawDragonOutline = (ctx: CanvasRenderingContext2D, x: number, y: number) 
   ctx.stroke();
 };
 
-const drawDragon = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
-  drawDragonWings(ctx, x, y);
-  drawDragonBody(ctx, x, y);
-  drawDragonTail(ctx, x, y);
-  drawDragonSpines(ctx, x, y);
-  drawDragonLegs(ctx, x, y);
-  drawDragonHead(ctx, x, y);
-  drawDragonHorns(ctx, x, y);
+const drawDragon = (ctx: CanvasRenderingContext2D, x: number, y: number, colors: DragonColors) => {
+  drawDragonWings(ctx, x, y, colors);
+  drawDragonBody(ctx, x, y, colors);
+  drawDragonTail(ctx, x, y, colors);
+  drawDragonSpines(ctx, x, y, colors);
+  drawDragonLegs(ctx, x, y, colors);
+  drawDragonHead(ctx, x, y, colors);
+  drawDragonHorns(ctx, x, y, colors);
   drawDragonEyes(ctx, x, y);
   drawDragonFire(ctx, x, y);
-  drawDragonOutline(ctx, x, y);
+  drawDragonOutline(ctx, x, y, colors);
 };
 
 
@@ -475,7 +559,6 @@ interface Player {
 export default function GameCanvas(props: { players: Player[], orb: { x: number, y: number } }) {
   const { players, orb } = props;
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number | null>(null);  
   // Store players in a ref so the render loop always reads the latest
   const playersRef = useRef(players);
   const orbRef = useRef(orb);
@@ -536,13 +619,10 @@ export default function GameCanvas(props: { players: Player[], orb: { x: number,
       // Read from ref to always get the latest players
       const currentPlayers = playersRef.current;
       
-      // Clean up colors for players who left
-      const currentPlayerIds = new Set(currentPlayers.map(p => p.id));
-      cleanupPlayerColors(currentPlayerIds);
-      
-      // Draw each player
+      // Draw each player with unique colors based on their ID
       currentPlayers.forEach((p) => {
-        drawDragon(ctx, p.x, p.y, p.id);
+        const colors = getDragonColors(p.id);
+        drawDragon(ctx, p.x, p.y, colors);
       });
     };
 
@@ -577,8 +657,6 @@ export default function GameCanvas(props: { players: Player[], orb: { x: number,
       ctx.fill();
     };
 
-    let isRunning = true;
-
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -594,7 +672,7 @@ export default function GameCanvas(props: { players: Player[], orb: { x: number,
     return () => {
       window.removeEventListener("resize", resize);
     };
-  }, [players, drawPlayers]);
+  }, [players]);
 
 
   return <canvas ref={canvasRef} className="absolute inset-0" />;

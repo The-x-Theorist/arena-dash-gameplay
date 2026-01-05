@@ -21,6 +21,10 @@ export const useGameStore = (roomId: string, name: string) => {
     const setOrb = useGameStoreData( (state: GameStoreData) => state.setOrb);
     const setOrbsCollected = useGameStoreData( (state: GameStoreData) => state.setOrbsCollected);
     const players = useGameStoreData( (state: GameStoreData) => state.players);
+    const setPlayers = useGameStoreData( (state: GameStoreData) => state.setPlayers);
+    const setOrb = useGameStoreData( (state: GameStoreData) => state.setOrb);
+    const setOrbsCollected = useGameStoreData( (state: GameStoreData) => state.setOrbsCollected);
+    const players = useGameStoreData( (state: GameStoreData) => state.players);
     const [error, setError] = useState<string | null>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,10 +106,6 @@ export const useGameStore = (roomId: string, name: string) => {
                     });
                     setError(null); // Clear any previous errors on successful connection
                 };
-
-                setTimeout(() => {
-                    sendMessage({"type":"input","seq":1,"pressed":["RIGHT"]});
-                }, 4000);
 
                 ws.onmessage = (event) => {
                     try {
@@ -225,6 +225,27 @@ export const useGameStore = (roomId: string, name: string) => {
             setOrbsCollected(players.map(player => ({ playerId: player.id, playerName: player.name, orbCollected: player.orbsCollected })));
         }
     }, [orbsCollected, players, setOrbsCollected]);
+
+    useEffect(() => {
+        window.addEventListener("keydown", (event) => {
+            console.log(event.key);
+            if (event.key === "ArrowUp") {
+                sendMessage({"type":"input","seq":1,"pressed":["UP"]});
+            }
+            if (event.key === "ArrowDown") {
+                sendMessage({"type":"input","seq":1,"pressed":["DOWN"]});
+            }
+            if (event.key === "ArrowLeft") {
+                sendMessage({"type":"input","seq":1,"pressed":["LEFT"]});
+            }
+            if (event.key === "ArrowRight") {
+                sendMessage({"type":"input","seq":1,"pressed":["RIGHT"]});
+            }
+        });
+        return () => {
+            window.removeEventListener("keydown", () => {});
+        };
+    }, []);
 
     const clearError = () => {
         setError(null);

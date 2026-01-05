@@ -5,6 +5,7 @@ import GameCanvas from "../../components/GameCanvas";
 import Sidebar from "../../components/Sidebar";
 import ErrorModal from "../../components/ErrorModal";
 import { useGameStore } from "../../../hooks/useGameStore";
+import useGameStoreData, { GameStoreData } from "@/app/store/gameStoreData";
 
 export default function GameScreen() {
   const { id } = useParams<{ id: string }>();
@@ -42,7 +43,7 @@ export default function GameScreen() {
               Room
             </span>
             <span className="px-2 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono">
-              Z3K9D
+              {id}
             </span>
           </div>
 
@@ -51,14 +52,7 @@ export default function GameScreen() {
               Players
             </span>
             <span className="px-2 py-1 rounded-full bg-white/5 border border-white/10 text-xs">
-              3 / 8
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-            <span className="px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/40 text-xs font-mono">
-              32 ms
+              {players.length} / 2
             </span>
           </div>
         </div>

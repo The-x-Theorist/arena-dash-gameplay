@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const generateRoomId = (): string => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -15,6 +15,9 @@ const generateRoomId = (): string => {
 export default function Home() {
   const [name, setName] = useState("");
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("roomId");
 
   const startGame = () => {
     let roomIdToUse = roomId;
