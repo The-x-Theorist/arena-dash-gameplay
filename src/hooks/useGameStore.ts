@@ -21,10 +21,6 @@ export const useGameStore = (roomId: string, name: string) => {
     const setOrb = useGameStoreData( (state: GameStoreData) => state.setOrb);
     const setOrbsCollected = useGameStoreData( (state: GameStoreData) => state.setOrbsCollected);
     const players = useGameStoreData( (state: GameStoreData) => state.players);
-    const setPlayers = useGameStoreData( (state: GameStoreData) => state.setPlayers);
-    const setOrb = useGameStoreData( (state: GameStoreData) => state.setOrb);
-    const setOrbsCollected = useGameStoreData( (state: GameStoreData) => state.setOrbsCollected);
-    const players = useGameStoreData( (state: GameStoreData) => state.players);
     const [error, setError] = useState<string | null>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
