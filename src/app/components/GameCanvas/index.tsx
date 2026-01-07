@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useEffect, useRef } from "react";
 
 // CONFIG
 const GRID_SIZE = 40;
