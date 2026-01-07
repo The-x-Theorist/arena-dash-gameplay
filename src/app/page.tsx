@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const generateRoomId = (): string => {
@@ -12,7 +12,7 @@ const generateRoomId = (): string => {
   return roomId;
 };
 
-export default function Home() {
+function HomeContent() {
   const [name, setName] = useState("");
   const router = useRouter();
 
@@ -47,5 +47,20 @@ export default function Home() {
         </button>
       </form>
     </main>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <main className="h-screen flex flex-col items-center justify-center bg-[#0D0F1A] text-white">
+          <h1 className="text-4xl font-bold mb-6">Arena Dash ⚡</h1>
+          <p className="text-white/60">Loading...</p>
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }
